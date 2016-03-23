@@ -1,1 +1,1 @@
-![tap, tap, tap, tap](http://i.giphy.com/UaT8WoXYrnYwo.gif)
+![tap, tap, tap, tap](https://github.com/victorman/ArduinoMetronome/blob/master/demonstration.gif)
