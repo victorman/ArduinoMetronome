@@ -6,13 +6,15 @@
 //PINS
 const int SPEAKER_PIN = 8;
 const int LED_PIN = 13;
-const int BUTTON_PIN = 7;
+//const int BUTTON_PIN = 7;
+const int knockSensor = A0;
 LiquidCrystal lcd(12, 11, 5, 4, 3, 2);
 
+const int threshold = 200;
 const long debounceDelay = 50;
 const boolean ACCENT = true;
 
-int BPM = 100;
+int BPM = 0;
 
 unsigned long last;
 unsigned long tdelay;
@@ -35,7 +37,7 @@ void setup() {
   
   pinMode(LED_PIN, OUTPUT);
   pinMode(SPEAKER_PIN, OUTPUT);
-  pinMode(BUTTON_PIN, INPUT);
+  //pinMode(BUTTON_PIN, INPUT);
   
   lcd.begin(16, 2);
   
@@ -53,23 +55,16 @@ void setup() {
 void loop() {
   int elapsed = millis() - last;
   
-  int reading = digitalRead(BUTTON_PIN);
+  int reading = analogRead(knockSensor);
   
-  if (reading != lastButtonState) {
-    // reset the debouncing timer
-    lastDebounceTime = millis();
-  }
 
   if ((millis() - lastDebounceTime) > debounceDelay) {
-    // whatever the reading is at, it's been there for longer
-    // than the debounce delay, so take it as the actual current state:
-
-    // if the button state has changed:
-    if (reading != buttonState) {
-      buttonState = reading;
-
+   
       // only toggle the LED if the new button state is HIGH
-      if (buttonState == HIGH) {
+    if (reading >= threshold) {
+      if((millis() - lastDebounceTime) > 2000) {
+        reset_taps();
+      }
         lcd.setCursor(15, 0);
         lcd.write(-1);
         taps[next_tap] = millis();
@@ -82,15 +77,15 @@ void loop() {
         
         next_tap = ++next_tap % taps_len;
         total_taps++;
-      } else {
+        
+      lastDebounceTime = millis();
+    } else {
         lcd.setCursor(15, 0);
         lcd.print(" ");
-      }
     }
   }
-  lastButtonState = reading;
   
-  if(total_taps < signiture || BPM == 0) { 
+  if(BPM == 0) { 
     return;
   }
   
@@ -150,4 +145,13 @@ int bpms() {
   }
   
   return 60000/(total / (signiture - 1));
+}
+
+void reset_taps() {
+  beat = 0;
+  for(int i=0;i<taps_len;i++) {
+    taps[i] = 0;
+  }
+  next_tap = 0;
+  total_taps = 0;
 }
